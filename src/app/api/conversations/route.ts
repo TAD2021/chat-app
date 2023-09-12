@@ -33,7 +33,7 @@ export async function POST(request: Request) {
                     isGroup,
                     users: {
                         connect: [
-                            members.map((member: {value: string}) => ({
+                            ...members.map((member: {value: string}) => ({
                                 id: member.value
                             })),{
                                 id: currentUser.id
@@ -43,7 +43,51 @@ export async function POST(request: Request) {
                     }
                 }
             })
+
+            return NextResponse.json(newConversation)
         }
+
+        const existingConversations = await prisma.conversation.findMany({
+            where: {
+                OR: [
+                    {
+                        userIds: {
+                            equals: [currentUser.id, userId]
+                        }
+                    },{
+                        userIds: {
+                            equals: [userId, currentUser.id]
+                        }
+                    }
+                ]
+            }
+        })
+
+        const singleConversation = existingConversations[0]
+
+        if(singleConversation){
+            return NextResponse.json(singleConversation)
+        }
+
+        const newConversation = await prisma.conversation.create({
+            data: {
+                users: {
+                    connect: [
+                        {
+                            id: currentUser.id
+                        },
+                        {
+                            id: userId
+                        }
+                    ]
+                } 
+            },
+            include: {
+                users: true
+            }
+        })
+
+        return NextResponse.json(newConversation)
 
     }catch(err: any){
         return new NextResponse('Internal Error', {
