@@ -19,11 +19,11 @@ const UserBox: React.FC<UserBoxProps> = ({
     const handleClick = useCallback(()=>{
         setLoading(true);
 
-        axios.post('/api/conversation', {
+        axios.post('/api/conversations', {
             userId: data.id
         })
             .then(data => {
-                router.push(`/conversation/${data.data.id}`)
+                router.push(`/conversations/${data.data.id}`)
             })
             .finally(() => setLoading(false))
     },[data, router])
